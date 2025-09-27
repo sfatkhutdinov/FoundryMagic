@@ -1,127 +1,165 @@
-# Content Management Contract
+# Content Management Module API Contract
 
-## GET /content/{type}
-**Description**: List available content by type (monsters, spells, items)
-**Path Parameters**:
-- `type`: monsters|spells|items
-**Query Parameters**:
-- `search`: string (optional)
-- `level`: number (optional, for spells)  
-- `cr`: string (optional, for monsters)
-- `rarity`: string (optional, for items)
-**Request Headers**:
-```
-Authorization: Bearer {cobaltToken}
-```
-**Response Success (200)**:
+## Module API Entry Point
+- **Access**: `const contentApi = game.modules.get('foundrymagic')?.api?.content`
+- **Permissions**: DM-only for mutations; players may read lists where appropriate.
+- **Transport**: Promise-based functions with optional progress streams over `foundrymagic.content` sockets.
+
+## Methods
+
+### `list({ type, search, filters })`
+**Description**: List available D&D Beyond content for a given type.
+
+| Parameter | Type | Required | Notes |
+|-----------|------|----------|-------|
+| `type` | `'monsters' | 'spells' | 'items'` | ✅ | Content category to list. |
+| `search` | `string` | ❌ | Free-text search. |
+| `filters` | `object` | ❌ | Type-specific filters (see below). |
+
+**Filter Keys**:
+- For spells: `level` (`number`), `school` (`string`)
+- For monsters: `challengeRating` (`string`), `environment` (`string`)
+- For items: `rarity` (`string`), `category` (`string`)
+
+**Returns** (`Promise<ContentList>`):
 ```json
 {
   "content": [
     {
-      "id": "string",
-      "name": "string",
-      "type": "string",
-      "source": "string",
-      "level": "number|null",
-      "cr": "string|null",
-      "rarity": "string|null",
+      "id": "ddb-uuid",
+      "name": "Fireball",
+      "type": "spells",
+      "source": "PHB",
+      "metadata": {
+        "level": 3,
+        "school": "Evocation",
+        "rarity": null,
+        "challengeRating": null
+      },
       "lastModified": "ISO8601 datetime"
     }
   ],
-  "totalCount": "number",
-  "hasMore": "boolean"
+  "totalCount": 325,
+  "hasMore": true
 }
 ```
 
-## POST /content/batch-import
-**Description**: Import multiple content items simultaneously
-**Request Headers**:
-```
-Authorization: Bearer {cobaltToken}
-```
-**Request Body**:
+### `batchImport({ items, options })`
+**Description**: Import multiple content entries concurrently with built-in throttling and progress reporting.
+
+| Parameter | Type | Required | Notes |
+|-----------|------|----------|-------|
+| `items[]` | `Array<ImportRequest>` | ✅ | Items to import (max 50 per batch).
+| `options.overwriteExisting` | `boolean` | ❌ | Default `false`.
+| `options.createFolders` | `boolean` | ❌ | Default `true`.
+
+**Returns** (`Promise<BatchHandle>`):
 ```json
 {
-  "items": [
-    {
-      "id": "string",
-      "type": "monsters|spells|items",
-      "compendiumId": "string"
-    }
-  ],
-  "options": {
-    "overwriteExisting": "boolean",
-    "createFolders": "boolean"
-  }
-}
-```
-**Response Success (200)**:
-```json
-{
-  "batchId": "string",
-  "status": "started",
+  "batchId": "uuid",
+  "status": "queued",
   "progress": {
-    "total": "number",
-    "completed": "number",
-    "failed": "number"
+    "total": 10,
+    "completed": 0,
+    "failed": 0
   }
 }
 ```
 
-## GET /content/batch-status/{batchId}
-**Description**: Check batch import progress
-**Response Success (200)**:
+### `trackBatch(batchId)`
+**Description**: Subscribe to progress updates for a batch import.
+
+**Returns** (`AsyncIterator<BatchProgress>`): yields progress payloads until completion.
+
+### `checkDuplicates({ items, compendiumId })`
+**Description**: Resolve duplicate content before import and produce suggested actions.
+
+**Returns** (`Promise<DuplicateSummary>`):
 ```json
 {
-  "batchId": "string",
-  "status": "in_progress|completed|failed",
-  "progress": {
-    "total": "number",
-    "completed": "number",
-    "failed": "number"
-  },
-  "errors": [
+  "duplicates": [
     {
-      "itemId": "string",
-      "error": "string",
-      "code": "string"
-    }
-  ],
-  "results": [
-    {
-      "itemId": "string",
-      "foundryId": "string",
-      "compendiumPath": "string"
+      "ddbId": "string",
+      "foundryId": "Compendium.foundrymagic.items.Item.xxxxx",
+      "name": "Bag of Holding",
+      "lastImported": "ISO8601 datetime",
+      "suggestedAction": "overwrite"
     }
   ]
 }
 ```
 
-## POST /content/duplicate-check
-**Description**: Check for duplicate content before import
-**Request Body**:
+## Socket Events
+- `foundrymagic.content.batch-progress`: Payload `BatchProgress`.
+- `foundrymagic.content.batch-completed`: Payload `{ batchId, results }`.
+- `foundrymagic.content.batch-failed`: Payload `{ batchId, errors }`.
+
+## Data Contracts
+
+### `ContentList`
 ```json
 {
-  "items": [
+  "content": [
     {
-      "id": "string",
-      "name": "string",
-      "type": "string"
+      "id": "ddb-uuid",
+      "name": "Example",
+      "type": "monsters",
+      "source": "MM",
+      "metadata": {
+        "challengeRating": "5",
+        "rarity": null
+      },
+      "lastModified": "ISO8601 datetime"
     }
   ],
-  "compendiumId": "string"
+  "totalCount": 1,
+  "hasMore": false
 }
 ```
-**Response Success (200)**:
+
+### `ImportRequest`
+```json
+{
+  "id": "ddb-uuid",
+  "type": "monsters",
+  "targetCompendium": "foundrymagic.monsters"
+}
+```
+
+### `BatchProgress`
+```json
+{
+  "batchId": "uuid",
+  "status": "queued|in_progress|completed|failed",
+  "progress": {
+    "total": 10,
+    "completed": 4,
+    "failed": 1
+  },
+  "lastItem": {
+    "id": "ddb-uuid",
+    "name": "Example"
+  },
+  "errors": [
+    {
+      "itemId": "ddb-uuid",
+      "error": "Network timeout",
+      "code": "NETWORK_TIMEOUT"
+    }
+  ]
+}
+```
+
+### `DuplicateSummary`
 ```json
 {
   "duplicates": [
     {
-      "ddbId": "string", 
+      "ddbId": "string",
       "foundryId": "string",
       "name": "string",
       "lastImported": "ISO8601 datetime",
-      "action": "overwrite|skip|rename"
+      "suggestedAction": "overwrite|skip|rename"
     }
   ]
 }

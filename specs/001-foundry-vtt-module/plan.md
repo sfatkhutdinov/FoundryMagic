@@ -135,14 +135,14 @@ docs/               # Documentation and guides
    - Validation rules from requirements
    - State transitions if applicable
 
-2. **Generate API contracts** from functional requirements:
-   - For each user action → endpoint
-   - Use standard REST/GraphQL patterns
-   - Output OpenAPI/GraphQL schema to `/contracts/`
+2. **Generate module API contracts** from functional requirements:
+   - For each user action → describe Foundry module API surface (exported functions, socket channels, UI hooks)
+   - Define payload schemas, events, and permission requirements
+   - Output markdown contracts to `/contracts/`
 
 3. **Generate contract tests** from contracts:
-   - One test file per endpoint
-   - Assert request/response schemas
+   - One test file per documented API function or hook
+   - Assert payload schemas and emitted events using Foundry test harnesses
    - Tests must fail (no implementation yet)
 
 4. **Extract test scenarios** from user stories:

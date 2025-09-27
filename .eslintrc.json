@@ -1,0 +1,64 @@
+{
+    "env": {
+        "browser": true,
+        "es2022": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "indent": [
+            "error",
+            2
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        "no-unused-vars": "warn",
+        "@typescript-eslint/no-unused-vars": "warn",
+        "no-console": "warn"
+    },
+    "globals": {
+        "game": "readonly",
+        "canvas": "readonly",
+        "ui": "readonly",
+        "CONFIG": "readonly",
+        "CONST": "readonly",
+        "foundry": "readonly",
+        "Hooks": "readonly",
+        "duplicate": "readonly",
+        "mergeObject": "readonly",
+        "setProperty": "readonly",
+        "getProperty": "readonly",
+        "hasProperty": "readonly",
+        "expandObject": "readonly",
+        "flattenObject": "readonly",
+        "randomID": "readonly",
+        "loadTemplates": "readonly",
+        "renderTemplate": "readonly"
+    },
+    "ignorePatterns": [
+        "node_modules/",
+        "dist/",
+        "coverage/"
+    ]
+}

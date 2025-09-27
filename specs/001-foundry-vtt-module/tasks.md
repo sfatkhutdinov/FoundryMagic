@@ -26,7 +26,7 @@
 6. Generate dependency graph
 7. Create parallel execution examples
 8. Validate task completeness:
-   → All contracts have tests? ✅ 4 contracts = 4 test tasks
+   → All contracts have module API tests? ✅ 4 contracts = 9 test tasks
    → All entities have models? ✅ 7 entities = 7 model tasks
    → All importers implemented? ✅ Character, Adventure, Content importers
 9. Return: SUCCESS (tasks ready for execution)
@@ -41,25 +41,25 @@
 - Module structure: core, auth, importers, cache, ui, utils
 
 ## Phase 3.1: Setup
-- [ ] T001 Create Foundry VTT module structure with src/core, src/auth, src/importers, src/cache, src/ui, src/utils directories
-- [ ] T002 Initialize module.json manifest with Foundry VTT module configuration and dnd5e system dependency
+- [x] T001 Create Foundry VTT module structure with src/core, src/auth, src/importers, src/cache, src/ui, src/utils directories
+- [x] T002 Initialize module.json manifest with Foundry VTT module configuration and dnd5e system dependency
 - [ ] T003 [P] Configure ESLint and Prettier for TypeScript/JavaScript code formatting
 - [ ] T004 [P] Setup Jest testing framework with Foundry VTT test environment configuration
-- [ ] T005 [P] Create package.json with TypeScript, testing, and build dependencies
+- [ ] T005 [P] Review and extend existing package.json with TypeScript, testing, and build dependencies
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
-### Contract Tests (API Endpoints)
-- [ ] T006 [P] Contract test POST /auth/validate in tests/contract/test_auth_validate.js
-- [ ] T007 [P] Contract test POST /auth/refresh in tests/contract/test_auth_refresh.js
-- [ ] T008 [P] Contract test GET /characters in tests/contract/test_characters_list.js
-- [ ] T009 [P] Contract test POST /characters/{id}/import in tests/contract/test_characters_import.js
-- [ ] T010 [P] Contract test GET /adventures in tests/contract/test_adventures_list.js
-- [ ] T011 [P] Contract test POST /adventures/{id}/import in tests/contract/test_adventures_import.js
-- [ ] T012 [P] Contract test GET /content/{type} in tests/contract/test_content_list.js
-- [ ] T013 [P] Contract test POST /content/batch-import in tests/contract/test_content_batch.js
-- [ ] T014 [P] Contract test POST /content/duplicate-check in tests/contract/test_content_duplicates.js
+### Contract Tests (Module API)
+- [ ] T006 [P] Contract test FoundryMagic.auth.authenticate in tests/contract/test_auth_authenticate.js
+- [ ] T007 [P] Contract test FoundryMagic.auth.refreshSession in tests/contract/test_auth_refresh.js
+- [ ] T008 [P] Contract test FoundryMagic.characters.list in tests/contract/test_characters_list.js
+- [ ] T009 [P] Contract test FoundryMagic.characters.importCharacter in tests/contract/test_characters_import.js
+- [ ] T010 [P] Contract test FoundryMagic.adventures.list in tests/contract/test_adventures_list.js
+- [ ] T011 [P] Contract test FoundryMagic.adventures.importAdventure in tests/contract/test_adventures_import.js
+- [ ] T012 [P] Contract test FoundryMagic.content.list with filters in tests/contract/test_content_list.js
+- [ ] T013 [P] Contract test FoundryMagic.content.batchImport progress events in tests/contract/test_content_batch.js
+- [ ] T014 [P] Contract test FoundryMagic.content.checkDuplicates in tests/contract/test_content_duplicates.js
 
 ### Integration Tests (User Scenarios)
 - [ ] T015 [P] Integration test module installation and setup in tests/integration/test_module_setup.js
@@ -69,7 +69,7 @@
 - [ ] T019 [P] Integration test batch content import in tests/integration/test_batch_import.js
 - [ ] T020 [P] Integration test duplicate handling in tests/integration/test_duplicate_handling.js
 - [ ] T021 [P] Integration test error recovery in tests/integration/test_error_recovery.js
-- [ ] T022 [P] Integration test cache management in tests/integration/test_cache_management.js
+- [ ] T022 [P] Integration test cache management and content update workflow in tests/integration/test_cache_and_update.js
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
@@ -131,7 +131,7 @@
 
 ### Unit Tests
 - [ ] T059 [P] Unit tests for authentication service in tests/unit/test_auth_service.js
-- [ ] T060 [P] Unit tests for cache management in tests/unit/test_cache_manager.js
+- [ ] T060 [P] Unit tests for cache management and update service in tests/unit/test_cache_and_update.js
 - [ ] T061 [P] Unit tests for data transformers in tests/unit/test_data_transformer.js
 - [ ] T062 [P] Unit tests for content validation in tests/unit/test_validation_service.js
 - [ ] T063 [P] Unit tests for error handling in tests/unit/test_error_handler.js
