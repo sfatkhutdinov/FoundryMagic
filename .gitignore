@@ -48,3 +48,5 @@ Thumbs.db
 # !.env.example
 
 .DS_Store
+reference-code
+references

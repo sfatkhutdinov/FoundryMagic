@@ -37,40 +37,72 @@ export default class AuthenticationService {
         }
 
         try {
-            // Validate token with D&D Beyond API
-            const response = await enhancedFetch(DDB_ENDPOINTS.USER_PROFILE, {
-                method: 'GET',
-                headers: createDDBHeaders(cobaltToken)
+            // Step 1: Exchange cobalt session token for Bearer token
+            console.log('🔐 Exchanging cobalt session for Bearer token...');
+            const authResponse = await enhancedFetch(DDB_ENDPOINTS.AUTH_SERVICE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cookie': `CobaltSession=${cobaltToken}`
+                }
             });
 
-            if (response.status === 401) {
+            if (authResponse.status === 401) {
                 const error = new Error('Invalid or expired cobalt token');
                 error.name = 'InvalidTokenError';
                 throw error;
             }
 
-            if (!response.ok) {
-                const error = new Error(`Network failure: ${response.status}`);
+            if (!authResponse.ok) {
+                const error = new Error(`Authentication service error: ${authResponse.status} ${authResponse.statusText}`);
                 error.name = 'NetworkFailureError';
                 throw error;
             }
 
-            const userProfile = await response.json();
+            const authData = await authResponse.json();
 
-            // Set up session
-            this._token = cobaltToken;
-            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours from now
+            if (!authData.token) {
+                const error = new Error('No bearer token received from authentication service');
+                error.name = 'InvalidTokenError';
+                throw error;
+            }
+
+            // Step 2: Store both tokens
+            this._cobaltToken = cobaltToken;
+            this._bearerToken = authData.token;
+
+            console.log('✅ Bearer token obtained successfully');
+
+            // Step 3: Test the bearer token with a simple API call
+            console.log('🧪 Testing Bearer token with character service...');
+            const testResponse = await enhancedFetch(DDB_ENDPOINTS.CHARACTER_TEST, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this._bearerToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (testResponse.status === 401) {
+                const error = new Error('Bearer token not accepted by character service');
+                error.name = 'InvalidTokenError';
+                throw error;
+            }
+
+            // Set up session data
+            const expiresAt = new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(); // 6 hours (Bearer tokens are shorter-lived)
 
             this._sessionData = {
                 valid: true,
                 expiresAt,
-                userId: userId || userProfile.id?.toString(),
-                permissions: ['characters', 'adventures', 'content']
+                userId: userId || 'authenticated-user',
+                permissions: ['characters', 'adventures', 'content'],
+                bearerToken: this._bearerToken,
+                cobaltToken: this._cobaltToken
             };
 
-            // Persist token
+            // Persist session data
             if (game?.settings) {
-                await game.settings.set('foundrymagic', 'ddbToken', cobaltToken);
                 await game.settings.set('foundrymagic', 'sessionData', this._sessionData);
             }
 
@@ -82,12 +114,22 @@ export default class AuthenticationService {
                 });
             }
 
-            // Set up auto-refresh timer (refresh 1 hour before expiry)
+            // Set up auto-refresh timer (refresh 1 hour before expiry) 
             this._scheduleRefresh();
 
-            return { ...this._sessionData };
+            console.log('🎉 Authentication completed successfully');
+
+            return {
+                success: true,
+                userId: this._sessionData.userId,
+                expiresAt: this._sessionData.expiresAt,
+                sessionDuration: '6 hours',
+                permissions: this._sessionData.permissions
+            };
 
         } catch (error) {
+            console.error('❌ Authentication failed:', error.message);
+
             if (error.name === 'InvalidTokenError' || error.name === 'PermissionDeniedError') {
                 throw error;
             }
@@ -96,6 +138,22 @@ export default class AuthenticationService {
             networkError.name = 'NetworkFailureError';
             throw networkError;
         }
+    }
+
+    /**
+     * Get Bearer token for API calls
+     * @returns {string|null} Bearer token or null if not authenticated
+     */
+    getBearerToken() {
+        return this._bearerToken || null;
+    }
+
+    /**
+     * Get Cobalt session token
+     * @returns {string|null} Cobalt token or null if not authenticated  
+     */
+    getCobaltToken() {
+        return this._cobaltToken || null;
     }
 
     /**

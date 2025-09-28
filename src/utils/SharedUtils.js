@@ -31,36 +31,84 @@ export function validateCobaltTokenFormat(token) {
         return false;
     }
 
+    // JWT/JWE format (starts with eyJ and has 2+ parts separated by dots)
+    const jwtPattern = /^eyJ[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]*){1,}$/;
+
     // Cobalt v2 token format: cobalt_2_[50+ character string]
     const cobaltV2Pattern = /^cobalt_2_[a-zA-Z0-9]{50,}$/;
-    return cobaltV2Pattern.test(token);
+
+    return jwtPattern.test(token) || cobaltV2Pattern.test(token);
 }
 
 /**
  * Create standardized D&D Beyond API headers
- * @param {string} token - Cobalt token
+ * @param {string} token - Token (cobalt for cookie auth, bearer for API calls)
  * @param {Object} additionalHeaders - Additional headers to include
+ * @param {string} authType - 'cookie' for cobalt session, 'bearer' for API calls
  * @returns {Object} Headers object
  */
-export function createDDBHeaders(token, additionalHeaders = {}) {
-    return {
-        'Authorization': `Bearer ${token}`,
+export function createDDBHeaders(token, additionalHeaders = {}, authType = 'auto') {
+    // Auto-detect token type if not specified
+    if (authType === 'auto') {
+        authType = token && token.startsWith('eyJ') ? 'cookie' : 'bearer';
+    }
+
+    const headers = {
         'Content-Type': 'application/json',
         'User-Agent': 'FoundryMagic/1.0.0',
         ...additionalHeaders
     };
-}
 
-/**
- * Common D&D Beyond API endpoints
+    if (authType === 'cookie') {
+        // Use as cookie for cobalt session tokens (authentication step)
+        headers['Cookie'] = `CobaltSession=${token}`;
+    } else {
+        // Use as bearer token for API calls
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return headers;
+}/**
+ * Common D&D Beyond API endpoints - Updated based on real implementations
  */
 export const DDB_ENDPOINTS = {
-    USER_PROFILE: 'https://www.dndbeyond.com/api/user/me',
-    CHARACTER: (id) => `https://character-service.dndbeyond.com/character/v5/character/${id}`,
-    MONSTER: (id) => `https://www.dndbeyond.com/api/monsters/${id}`,
-    SPELL: (id) => `https://www.dndbeyond.com/api/spells/${id}`,
-    ITEM: (id) => `https://www.dndbeyond.com/api/equipment/${id}`,
-    ADVENTURE: (id) => `https://www.dndbeyond.com/api/adventures/${id}`
+    // Authentication service for exchanging cobalt session for Bearer token
+    AUTH_SERVICE: 'https://auth-service.dndbeyond.com/v1/cobalt-token',
+
+    // Character service endpoints
+    CHARACTER_BASE: 'https://character-service.dndbeyond.com/character/v5',
+    CHARACTER: (id) => `https://character-service.dndbeyond.com/character/v5/character/${id}?includeCustomItems=true`,
+    CHARACTER_TEST: `https://character-service.dndbeyond.com/character/v5/game-data/items?sharingSetting=2&take=1`,
+
+    // Spell endpoints
+    SPELLS: (classId, level, campaignId = null) => {
+        const campaign = campaignId ? `&campaignId=${campaignId}` : '';
+        return `https://character-service.dndbeyond.com/character/v5/game-data/spells?classId=${classId}&classLevel=${level}&sharingSetting=2${campaign}`;
+    },
+
+    // Item endpoints  
+    ITEMS: (campaignId = null) => {
+        const campaign = campaignId ? `&campaignId=${campaignId}` : '';
+        return `https://character-service.dndbeyond.com/character/v5/game-data/items?sharingSetting=2${campaign}`;
+    },
+
+    // Monster service endpoints
+    MONSTER_BASE: 'https://monster-service.dndbeyond.com/v1/Monster',
+    MONSTERS: (skip = 0, take = 20, search = '') => {
+        return `https://monster-service.dndbeyond.com/v1/Monster?search=${encodeURIComponent(search)}&skip=${skip}&take=${take}`;
+    },
+    MONSTER_IDS: (ids) => {
+        const idParams = ids.map(id => `ids=${id}`).join('&');
+        return `https://monster-service.dndbeyond.com/v1/Monster?${idParams}`;
+    },
+
+    // Class and race options
+    CLASS_OPTIONS: `https://character-service.dndbeyond.com/character/v5/game-data/class-feature/collection`,
+    RACIAL_TRAITS: `https://character-service.dndbeyond.com/character/v5/game-data/racial-trait/collection`,
+
+    // Campaign endpoints
+    CAMPAIGNS: 'https://www.dndbeyond.com/api/campaign/stt/user-campaigns',
+    CONFIG: 'https://www.dndbeyond.com/api/config/json'
 };
 
 /**
