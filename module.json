@@ -17,7 +17,7 @@
         }
     ],
     "esmodules": [
-        "src/core/FoundryMagic.js"
+        "src/index.js"
     ],
     "styles": [
         "styles/foundrymagic.css"

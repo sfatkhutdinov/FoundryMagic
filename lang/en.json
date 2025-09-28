@@ -1,0 +1,87 @@
+{
+    "FOUNDRYMAGIC": {
+        "Title": "FoundryMagic",
+        "ModuleName": "FoundryMagic",
+        "Authentication": {
+            "Title": "D&D Beyond Authentication",
+            "CobaltToken": "Cobalt Token",
+            "CobaltTokenHint": "Enter your D&D Beyond cobalt session token from your browser cookies",
+            "Authenticate": "Authenticate",
+            "Logout": "Logout",
+            "Status": "Authentication Status",
+            "Authenticated": "Authenticated",
+            "Unauthenticated": "Not Authenticated",
+            "SessionExpires": "Session expires"
+        },
+        "Import": {
+            "Characters": "Import Characters",
+            "Adventures": "Import Adventures",
+            "Monsters": "Import Monsters",
+            "Spells": "Import Spells",
+            "Items": "Import Items",
+            "BatchImport": "Batch Import",
+            "SelectItems": "Select items to import",
+            "ImportSelected": "Import Selected",
+            "ImportAll": "Import All",
+            "Cancel": "Cancel"
+        },
+        "Progress": {
+            "Importing": "Importing...",
+            "Complete": "Import Complete",
+            "Failed": "Import Failed",
+            "Canceled": "Import Canceled",
+            "ItemsImported": "{count} items imported successfully",
+            "ItemsFailed": "{count} items failed to import"
+        },
+        "Dialogs": {
+            "AuthenticationRequired": "Authentication Required",
+            "AuthenticationRequiredMessage": "You must authenticate with D&D Beyond before importing content.",
+            "ImportError": "Import Error",
+            "ImportSuccess": "Import Successful",
+            "DuplicateContent": "Duplicate Content",
+            "DuplicateContentMessage": "Some content already exists in your world. How would you like to handle duplicates?",
+            "Skip": "Skip",
+            "Overwrite": "Overwrite",
+            "Rename": "Rename"
+        },
+        "Errors": {
+            "AuthenticationFailed": "Authentication failed. Please check your cobalt token.",
+            "NetworkError": "Network error occurred. Please try again.",
+            "ImportFailed": "Failed to import {name}. Error: {error}",
+            "InvalidToken": "Invalid or expired cobalt token.",
+            "PermissionDenied": "Permission denied. Only GMs can use this module.",
+            "ContentNotFound": "Requested content not found on D&D Beyond.",
+            "UnknownError": "An unknown error occurred."
+        },
+        "Notifications": {
+            "AuthenticationSuccess": "Successfully authenticated with D&D Beyond!",
+            "AuthenticationFailed": "Failed to authenticate with D&D Beyond.",
+            "ImportStarted": "Import started...",
+            "ImportComplete": "Import completed successfully!",
+            "ImportFailed": "Import failed. Check the console for details.",
+            "CacheCleared": "Cache cleared successfully.",
+            "SessionRefreshed": "Authentication session refreshed."
+        },
+        "Settings": {
+            "Title": "FoundryMagic Settings",
+            "CacheSettings": "Cache Settings",
+            "CacheSize": "Cache Size Limit (MB)",
+            "CacheSizeHint": "Maximum size for the local cache in megabytes",
+            "ClearCache": "Clear Cache",
+            "ClearCacheHint": "Clear all cached D&D Beyond content",
+            "ImportSettings": "Import Settings",
+            "BatchSize": "Batch Size",
+            "BatchSizeHint": "Number of items to import simultaneously",
+            "Timeout": "Request Timeout (seconds)",
+            "TimeoutHint": "Maximum time to wait for D&D Beyond responses"
+        },
+        "Cache": {
+            "Status": "Cache Status",
+            "Size": "Size: {size} MB",
+            "Items": "Items: {count}",
+            "LastUpdated": "Last updated: {time}",
+            "Clear": "Clear Cache",
+            "Refresh": "Refresh Cache"
+        }
+    }
+}

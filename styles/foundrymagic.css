@@ -1,0 +1,154 @@
+/* FoundryMagic Module Styles */
+
+.foundrymagic-dialog {
+    min-width: 400px;
+    min-height: 300px;
+}
+
+.foundrymagic-dialog .dialog-content {
+    padding: 10px;
+}
+
+.foundrymagic-dialog .form-group {
+    margin-bottom: 15px;
+}
+
+.foundrymagic-dialog label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.foundrymagic-dialog input[type="text"],
+.foundrymagic-dialog input[type="password"],
+.foundrymagic-dialog textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-family: inherit;
+}
+
+.foundrymagic-dialog textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.foundrymagic-progress {
+    margin: 10px 0;
+}
+
+.foundrymagic-progress .progress-bar {
+    background-color: #4CAF50;
+    height: 20px;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.foundrymagic-import-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.foundrymagic-import-item {
+    padding: 5px;
+    margin: 2px 0;
+    border-left: 3px solid #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+.foundrymagic-import-item.error {
+    border-left-color: #f44336;
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+.foundrymagic-import-item.warning {
+    border-left-color: #ff9800;
+    background-color: rgba(255, 152, 0, 0.1);
+}
+
+.foundrymagic-auth-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.foundrymagic-auth-status.authenticated {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.foundrymagic-auth-status.unauthenticated {
+    background-color: #f44336;
+    color: white;
+}
+
+.foundrymagic-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.foundrymagic-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.foundrymagic-buttons button.primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.foundrymagic-buttons button.secondary {
+    background-color: #ccc;
+    color: #333;
+}
+
+.foundrymagic-buttons button:hover {
+    opacity: 0.9;
+}
+
+.foundrymagic-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Notification styles */
+.foundrymagic-notification {
+    position: relative;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 3px;
+    border-left: 4px solid #4CAF50;
+}
+
+.foundrymagic-notification.error {
+    border-left-color: #f44336;
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+.foundrymagic-notification.warning {
+    border-left-color: #ff9800;
+    background-color: rgba(255, 152, 0, 0.1);
+}
+
+.foundrymagic-notification.info {
+    border-left-color: #2196F3;
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.foundrymagic-notification.success {
+    border-left-color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1);
+}
