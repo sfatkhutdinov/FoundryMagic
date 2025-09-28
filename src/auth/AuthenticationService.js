@@ -3,21 +3,196 @@
  * Handles cobalt token management and validation
  */
 
+import { validateCobaltTokenFormat, createDDBHeaders, DDB_ENDPOINTS, enhancedFetch } from '../utils/SharedUtils.js';
+
 export default class AuthenticationService {
     constructor() {
         this._token = null;
         this._isInitialized = false;
+        this._sessionData = null;
+        this._refreshTimer = null;
     }
 
     /**
-     * Initialize the authentication service
+     * Authenticate with D&D Beyond using cobalt token (Contract API method)
+     * @param {Object} options - Authentication options
+     * @param {string} options.cobaltToken - Raw D&D Beyond cobalt token
+     * @param {string} options.userId - D&D Beyond account identifier
+     * @returns {Promise<AuthenticationResult>}
+     * @throws {InvalidTokenError|NetworkFailureError|PermissionDeniedError}
      */
-    async initialize() {
-        // Load token from Foundry settings if available
-        if (game?.settings) {
-            this._token = game.settings.get('foundrymagic', 'ddbToken') || null;
+    async authenticate({ cobaltToken, userId }) {
+        // Check permissions - only DMs can authenticate
+        if (!game.user.isGM) {
+            const error = new Error('Only DMs can authenticate with D&D Beyond');
+            error.name = 'PermissionDeniedError';
+            throw error;
         }
-        this._isInitialized = true;
+
+        // Validate token format
+        if (!validateCobaltTokenFormat(cobaltToken)) {
+            const error = new Error('Invalid cobalt token format');
+            error.name = 'InvalidTokenError';
+            throw error;
+        }
+
+        try {
+            // Validate token with D&D Beyond API
+            const response = await enhancedFetch(DDB_ENDPOINTS.USER_PROFILE, {
+                method: 'GET',
+                headers: createDDBHeaders(cobaltToken)
+            });
+
+            if (response.status === 401) {
+                const error = new Error('Invalid or expired cobalt token');
+                error.name = 'InvalidTokenError';
+                throw error;
+            }
+
+            if (!response.ok) {
+                const error = new Error(`Network failure: ${response.status}`);
+                error.name = 'NetworkFailureError';
+                throw error;
+            }
+
+            const userProfile = await response.json();
+
+            // Set up session
+            this._token = cobaltToken;
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours from now
+            
+            this._sessionData = {
+                valid: true,
+                expiresAt,
+                userId: userId || userProfile.id?.toString(),
+                permissions: ['characters', 'adventures', 'content']
+            };
+
+            // Persist token
+            if (game?.settings) {
+                await game.settings.set('foundrymagic', 'ddbToken', cobaltToken);
+                await game.settings.set('foundrymagic', 'sessionData', this._sessionData);
+            }
+
+            // Emit authentication event
+            if (game.socket) {
+                game.socket.emit('foundrymagic.auth.validated', {
+                    userId: this._sessionData.userId,
+                    expiresAt: this._sessionData.expiresAt
+                });
+            }
+
+            // Set up auto-refresh timer (refresh 1 hour before expiry)
+            this._scheduleRefresh();
+
+            return { ...this._sessionData };
+
+        } catch (error) {
+            if (error.name === 'InvalidTokenError' || error.name === 'PermissionDeniedError') {
+                throw error;
+            }
+            
+            const networkError = new Error(`Network failure during authentication: ${error.message}`);
+            networkError.name = 'NetworkFailureError';
+            throw networkError;
+        }
+    }
+
+    /**
+     * Refresh the active session (Contract API method)
+     * @returns {Promise<RefreshResult>}
+     * @throws {NoActiveSessionError|RefreshFailedError}
+     */
+    async refreshSession() {
+        if (!this._token || !this._sessionData) {
+            const error = new Error('No active session to refresh');
+            error.name = 'NoActiveSessionError';
+            throw error;
+        }
+
+        try {
+            // Validate current token is still good
+            const response = await enhancedFetch(DDB_ENDPOINTS.USER_PROFILE, {
+                method: 'GET',
+                headers: createDDBHeaders(this._token)
+            });
+
+            if (!response.ok) {
+                const error = new Error('Token refresh failed - invalid token');
+                error.name = 'RefreshFailedError';
+                throw error;
+            }
+
+            // Update expiry time
+            const newExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+            this._sessionData.expiresAt = newExpiresAt;
+
+            // Persist updated session
+            if (game?.settings) {
+                await game.settings.set('foundrymagic', 'sessionData', this._sessionData);
+            }
+
+            // Emit refresh event
+            if (game.socket) {
+                game.socket.emit('foundrymagic.auth.refreshed', {
+                    expiresAt: newExpiresAt
+                });
+            }
+
+            // Reschedule next refresh
+            this._scheduleRefresh();
+
+            return {
+                refreshed: true,
+                expiresAt: newExpiresAt
+            };
+
+        } catch (error) {
+            if (error.name === 'RefreshFailedError') {
+                throw error;
+            }
+            
+            const refreshError = new Error(`Session refresh failed: ${error.message}`);
+            refreshError.name = 'RefreshFailedError';
+            throw refreshError;
+        }
+    }
+
+    /**
+     * Get current session status
+     * @returns {Object|null} Session data or null if no active session
+     */
+    getSession() {
+        return this._sessionData ? { ...this._sessionData } : null;
+    }
+
+    /**
+     * Schedule automatic token refresh
+     * @private
+     */
+    _scheduleRefresh() {
+        if (this._refreshTimer) {
+            clearTimeout(this._refreshTimer);
+        }
+
+        if (this._sessionData?.expiresAt) {
+            const expiryTime = new Date(this._sessionData.expiresAt).getTime();
+            const refreshTime = expiryTime - (60 * 60 * 1000); // 1 hour before expiry
+            const timeUntilRefresh = refreshTime - Date.now();
+
+            if (timeUntilRefresh > 0) {
+                this._refreshTimer = setTimeout(async () => {
+                    try {
+                        await this.refreshSession();
+                    } catch (error) {
+                        console.warn('Automatic session refresh failed:', error);
+                        // Clear session on refresh failure
+                        this._sessionData = null;
+                        this._token = null;
+                    }
+                }, timeUntilRefresh);
+            }
+        }
     }
 
     /**
@@ -26,7 +201,7 @@ export default class AuthenticationService {
      * @throws {Error} If token format is invalid
      */
     setToken(token) {
-        if (!this._validateTokenFormat(token)) {
+        if (!validateCobaltTokenFormat(token)) {
             throw new Error('Invalid token format');
         }
 
@@ -50,31 +225,24 @@ export default class AuthenticationService {
     }
 
     /**
-     * Clear the stored token
+     * Clear the stored token and session
      */
     clearToken() {
         this._token = null;
+        this._sessionData = null;
+        
+        if (this._refreshTimer) {
+            clearTimeout(this._refreshTimer);
+            this._refreshTimer = null;
+        }
 
         if (game?.settings) {
             game.settings.set('foundrymagic', 'ddbToken', null);
+            game.settings.set('foundrymagic', 'sessionData', null);
         }
     }
 
-    /**
-     * Validate token format
-     * @private
-     * @param {string} token - Token to validate
-     * @returns {boolean} True if valid format
-     */
-    _validateTokenFormat(token) {
-        if (!token || typeof token !== 'string') {
-            return false;
-        }
 
-        // Cobalt v2 token format: cobalt_2_[50+ character string]
-        const cobaltV2Pattern = /^cobalt_2_[a-zA-Z0-9]{50,}$/;
-        return cobaltV2Pattern.test(token);
-    }
 
     /**
      * Validate token against D&D Beyond API
@@ -87,23 +255,18 @@ export default class AuthenticationService {
         }
 
         try {
-            const response = await fetch('https://www.dndbeyond.com/api/user/me', {
+            const response = await enhancedFetch(DDB_ENDPOINTS.USER_PROFILE, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: createDDBHeaders(token)
             });
-
-            if (response.status === 401) {
-                // Token expired or invalid, clear it
-                this.clearToken();
-                return false;
-            }
 
             return response.ok;
         } catch (error) {
             console.warn('Token validation failed:', error);
+            if (error.name === 'AuthenticationError') {
+                // Token expired or invalid, clear it
+                this.clearToken();
+            }
             return false;
         }
     }
@@ -119,17 +282,10 @@ export default class AuthenticationService {
         }
 
         try {
-            const response = await fetch('https://www.dndbeyond.com/api/user/me', {
+            const response = await enhancedFetch(DDB_ENDPOINTS.USER_PROFILE, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: createDDBHeaders(token)
             });
-
-            if (!response.ok) {
-                return null;
-            }
 
             return await response.json();
         } catch (error) {
@@ -154,10 +310,42 @@ export default class AuthenticationService {
     }
 
     /**
+     * Initialize the authentication service
+     */
+    async initialize() {
+        // Load token and session data from Foundry settings if available
+        if (game?.settings) {
+            this._token = game.settings.get('foundrymagic', 'ddbToken') || null;
+            this._sessionData = game.settings.get('foundrymagic', 'sessionData') || null;
+            
+            // Check if session is still valid
+            if (this._sessionData && this._sessionData.expiresAt) {
+                const expiryTime = new Date(this._sessionData.expiresAt).getTime();
+                if (Date.now() >= expiryTime) {
+                    // Session expired, clear it
+                    this._sessionData = null;
+                    this._token = null;
+                    await game.settings.set('foundrymagic', 'ddbToken', null);
+                    await game.settings.set('foundrymagic', 'sessionData', null);
+                } else {
+                    // Schedule refresh for valid session
+                    this._scheduleRefresh();
+                }
+            }
+        }
+        this._isInitialized = true;
+    }
+
+    /**
      * Cleanup resources
      */
     cleanup() {
+        if (this._refreshTimer) {
+            clearTimeout(this._refreshTimer);
+            this._refreshTimer = null;
+        }
         this._token = null;
+        this._sessionData = null;
         this._isInitialized = false;
     }
 }
