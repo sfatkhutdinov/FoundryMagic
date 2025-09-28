@@ -2,11 +2,14 @@
     "env": {
         "browser": true,
         "es2022": true,
-        "node": true
+        "node": true,
+        "jest": true
     },
     "extends": [
         "eslint:recommended",
-        "@typescript-eslint/recommended"
+        "plugin:jest/recommended",
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -14,12 +17,16 @@
         "sourceType": "module"
     },
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "jest"
     ],
     "rules": {
         "indent": [
             "error",
-            2
+            4,
+            {
+                "SwitchCase": 1
+            }
         ],
         "linebreak-style": [
             "error",
@@ -27,16 +34,36 @@
         ],
         "quotes": [
             "error",
-            "double"
+            "single",
+            {
+                "avoidEscape": true
+            }
         ],
         "semi": [
             "error",
             "always"
         ],
-        "no-unused-vars": "warn",
-        "@typescript-eslint/no-unused-vars": "warn",
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_"
+            }
+        ],
         "no-console": "warn"
     },
+    "overrides": [
+        {
+            "files": [
+                "tests/**/*.js",
+                "tests/**/*.ts"
+            ],
+            "env": {
+                "jest": true
+            }
+        }
+    ],
     "globals": {
         "game": "readonly",
         "canvas": "readonly",
@@ -54,7 +81,39 @@
         "flattenObject": "readonly",
         "randomID": "readonly",
         "loadTemplates": "readonly",
-        "renderTemplate": "readonly"
+        "renderTemplate": "readonly",
+        "Actor": "readonly",
+        "Item": "readonly",
+        "Application": "readonly",
+        "Dialog": "readonly",
+        "ChatMessage": "readonly",
+        "Compendium": "readonly",
+        "CompendiumCollection": "readonly",
+        "Scene": "readonly",
+        "Token": "readonly",
+        "Wall": "readonly",
+        "Lighting": "readonly",
+        "AmbientLight": "readonly",
+        "MeasuredTemplate": "readonly",
+        "Tile": "readonly",
+        "Drawing": "readonly",
+        "Note": "readonly",
+        "Macro": "readonly",
+        "RollTable": "readonly",
+        "JournalEntry": "readonly",
+        "Playlist": "readonly",
+        "PlaylistSound": "readonly",
+        "Folder": "readonly",
+        "User": "readonly",
+        "Roll": "readonly",
+        "DicePool": "readonly",
+        "AudioHelper": "readonly",
+        "ImageHelper": "readonly",
+        "VideoHelper": "readonly",
+        "TextEditor": "readonly",
+        "Color": "readonly",
+        "SocketInterface": "readonly",
+        "$": "readonly"
     },
     "ignorePatterns": [
         "node_modules/",

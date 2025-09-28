@@ -7,7 +7,8 @@ export default {
     },
     testMatch: [
         "<rootDir>/tests/**/*.test.js",
-        "<rootDir>/tests/**/*.test.ts"
+        "<rootDir>/tests/**/*.test.ts",
+        "<rootDir>/tests/contract/**/test_*.js"
     ],
     collectCoverageFrom: [
         "src/**/*.{js,ts}",

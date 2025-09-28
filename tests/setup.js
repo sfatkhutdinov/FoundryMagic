@@ -1,6 +1,6 @@
 // Test setup file for Foundry VTT environment simulation
 global.game = {
-    user: { isGM: true, id: "test-user" },
+    user: { isGM: true, id: 'test-user' },
     settings: {
         get: jest.fn(),
         set: jest.fn(),
@@ -44,7 +44,7 @@ global.foundry = {
     utils: {
         mergeObject: jest.fn((a, b) => Object.assign({}, a, b)),
         duplicate: jest.fn((obj) => JSON.parse(JSON.stringify(obj))),
-        randomID: jest.fn(() => "test-id-" + Math.random().toString(36).substr(2, 9))
+        randomID: jest.fn(() => 'test-id-' + Math.random().toString(36).substr(2, 9))
     }
 };
 
@@ -56,8 +56,8 @@ global.Hooks = {
 };
 
 // Mock browser APIs
-global.indexedDB = require("fake-indexeddb");
-global.IDBKeyRange = require("fake-indexeddb/lib/FDBKeyRange");
+global.indexedDB = require('fake-indexeddb');
+global.IDBKeyRange = require('fake-indexeddb/lib/FDBKeyRange');
 
 // Mock fetch for D&D Beyond API calls
 global.fetch = jest.fn();
