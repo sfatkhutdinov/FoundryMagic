@@ -1,0 +1,40 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Create release package
+      run: |
+        mkdir release
+        zip -r release/foundrymagic.zip \
+          module.json \
+          src/ \
+          styles/ \
+          lang/ \
+          macros/ \
+          docs/README.md \
+          docs/USER_GUIDE.md \
+          docs/API.md \
+          LICENSE \
+          -x "*.DS_Store" "*node_modules*" "*tests*" "*reference-code*" "*specs*" "*.env*" "*package*.json" "*babel*" "*jest*" "*tsconfig*" "*eslint*" "*prettier*"
+        cp module.json release/
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release/foundrymagic.zip
+          release/module.json
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
