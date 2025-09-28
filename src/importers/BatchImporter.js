@@ -12,13 +12,13 @@ export default class BatchImporter {
         this._contentService = contentService;
         this._maxConcurrent = 5; // Max concurrent imports
         this._activeImports = new Map();
-        
+
         // Performance optimization settings (T064)
         this._chunkSize = 50; // Max 50 items per batch
         this._maxImportTimeMs = 5 * 60 * 1000; // 5 minutes max for adventures
         this._memoryThreshold = 200 * 1024 * 1024; // 200MB memory limit
         this._gcInterval = null;
-        
+
         // Memory monitoring
         this._memoryStats = {
             peak: 0,
@@ -44,12 +44,12 @@ export default class BatchImporter {
      */
     async startBatchImport(params) {
         const { items, options = {} } = params;
-        
+
         // Performance optimization: enforce chunking limit (T064)
         if (items.length > this._chunkSize) {
             throw new Error(`Batch size (${items.length}) exceeds maximum allowed (${this._chunkSize})`);
         }
-        
+
         const batchId = generateId('batch');
 
         const batchHandle = {
@@ -290,7 +290,7 @@ export default class BatchImporter {
                 const memInfo = performance.memory;
                 this._memoryStats.current = memInfo.usedJSHeapSize;
                 this._memoryStats.peak = Math.max(this._memoryStats.peak, this._memoryStats.current);
-                
+
                 // Trigger GC if memory usage is high
                 if (this._memoryStats.current > this._memoryThreshold) {
                     this._forceGarbageCollection();
@@ -321,7 +321,7 @@ export default class BatchImporter {
             window.gc();
             this._memoryStats.gcCount++;
         }
-        
+
         // Also clear any cached references
         this._clearTemporaryCache();
     }
@@ -333,7 +333,7 @@ export default class BatchImporter {
     _clearTemporaryCache() {
         // Clear completed batches older than 5 minutes
         const fiveMinutesAgo = Date.now() - 300000;
-        
+
         for (const [batchId, batch] of this._activeImports.entries()) {
             if (batch.status === 'completed' && batch.startTime < fiveMinutesAgo) {
                 this._activeImports.delete(batchId);
@@ -393,13 +393,13 @@ export default class BatchImporter {
         for (const batchId of this._activeImports.keys()) {
             this.cancelBatch(batchId);
         }
-        
+
         // Stop monitoring intervals
         if (this._gcInterval) {
             clearInterval(this._gcInterval);
             this._gcInterval = null;
         }
-        
+
         // Final garbage collection
         this._forceGarbageCollection();
     }

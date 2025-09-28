@@ -30,7 +30,7 @@ describe('CacheManager', () => {
 
     beforeEach(() => {
         cacheManager = new CacheManager();
-        
+
         mockStore = {
             get: jest.fn(),
             put: jest.fn(),
@@ -307,7 +307,7 @@ describe('UpdateService', () => {
     describe('checkForUpdates', () => {
         test('should detect updated content', async () => {
             const contentIds = ['char1', 'char2'];
-            
+
             // Mock cached versions
             mockCacheManager.getCharacter.mockImplementation(id => {
                 if (id === 'char1') return Promise.resolve({ version: '1.0' });

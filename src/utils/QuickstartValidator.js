@@ -374,7 +374,7 @@ export class QuickstartValidator {
 
         // Check cache management API
         const cacheManager = game.modules.get('foundrymagic')?.api?.cache;
-        
+
         let cacheStatus = null;
         if (cacheManager?.getStatus) {
             try {
@@ -460,10 +460,10 @@ export class QuickstartValidator {
             });
         }
 
-        const authTests = this.testResults.filter(r => 
+        const authTests = this.testResults.filter(r =>
             r.details?.reason === 'No valid authentication session'
         );
-        
+
         if (authTests.length > 0) {
             recommendations.push('Set up D&D Beyond authentication to test full functionality');
         }
@@ -485,7 +485,7 @@ export async function runQuickstartValidation() {
         const validator = new QuickstartValidator();
         await validator.initialize();
         const report = await validator.runAllScenarios();
-        
+
         // Display results in UI
         const content = `
             <h2>FoundryMagic Quickstart Validation</h2>
@@ -504,13 +504,13 @@ export async function runQuickstartValidation() {
             buttons: {
                 close: {
                     label: 'Close',
-                    callback: () => {}
+                    callback: () => { }
                 }
             }
         }).render(true);
 
         return report;
-        
+
     } catch (error) {
         console.error('Quickstart validation failed:', error);
         ui.notifications.error(`Quickstart validation failed: ${error.message}`);

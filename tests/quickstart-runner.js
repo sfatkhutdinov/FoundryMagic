@@ -11,7 +11,7 @@ import { runQuickstartValidation } from '../src/utils/QuickstartValidator.js';
  */
 async function executeQuickstartTests() {
     console.log('🚀 Starting FoundryMagic Quickstart Validation...\n');
-    
+
     try {
         // Check if we're in a Foundry environment
         if (typeof game === 'undefined') {
@@ -21,7 +21,7 @@ async function executeQuickstartTests() {
 
         // Run the validation
         const report = await runQuickstartValidation();
-        
+
         // Output detailed results
         console.log('\n=== DETAILED RESULTS ===');
         report.results.forEach(result => {
@@ -44,7 +44,7 @@ async function executeQuickstartTests() {
 
         // Exit code for CI
         process.exit(report.readyForRelease ? 0 : 1);
-        
+
     } catch (error) {
         console.error('❌ Quickstart validation failed:', error);
         process.exit(1);

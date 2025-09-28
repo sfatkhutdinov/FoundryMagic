@@ -13,7 +13,7 @@ export function chunkArray(array, size) {
     if (!Array.isArray(array) || size <= 0) {
         return [];
     }
-    
+
     const chunks = [];
     for (let i = 0; i < array.length; i += size) {
         chunks.push(array.slice(i, i + size));
@@ -100,7 +100,7 @@ export async function enhancedFetch(url, options = {}, retryOptions = {}) {
                 } else if (response.status >= 500) {
                     throw new ServerError(`Server error: ${response.status}`);
                 }
-                
+
                 throw new NetworkError(`HTTP ${response.status}: ${response.statusText}`);
             }
 
@@ -110,8 +110,8 @@ export async function enhancedFetch(url, options = {}, retryOptions = {}) {
             lastError = error;
 
             // Don't retry on certain errors
-            if (error instanceof AuthenticationError || 
-                error instanceof PermissionError || 
+            if (error instanceof AuthenticationError ||
+                error instanceof PermissionError ||
                 error instanceof NotFoundError) {
                 throw error;
             }
@@ -242,15 +242,15 @@ export function deepClone(obj) {
     if (obj === null || typeof obj !== 'object') {
         return obj;
     }
-    
+
     if (obj instanceof Date) {
         return new Date(obj.getTime());
     }
-    
+
     if (obj instanceof Array) {
         return obj.map(item => deepClone(item));
     }
-    
+
     if (typeof obj === 'object') {
         const cloned = {};
         for (const key in obj) {
@@ -317,7 +317,7 @@ export function debounce(func, wait) {
  */
 export function throttle(func, limit) {
     let inThrottle;
-    return function(...args) {
+    return function (...args) {
         if (!inThrottle) {
             func.apply(this, args);
             inThrottle = true;

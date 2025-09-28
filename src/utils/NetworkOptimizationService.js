@@ -18,7 +18,7 @@ export default class NetworkOptimizationService {
             samples: [],
             maxSamples: 100
         };
-        
+
         // Request caching
         this._requestCache = new Map();
         this._cacheHeaders = {
@@ -46,11 +46,11 @@ export default class NetworkOptimizationService {
      */
     async optimizedFetch(url, options = {}) {
         const startTime = Date.now();
-        
+
         // Check cache first
         const cacheKey = this._getCacheKey(url, options);
         const cached = this._requestCache.get(cacheKey);
-        
+
         if (cached && !this._isCacheExpired(cached)) {
             this._recordResponseTime(Date.now() - startTime);
             return cached.response.clone();
@@ -68,22 +68,22 @@ export default class NetworkOptimizationService {
         try {
             // Perform request with timeout
             const response = await this._fetchWithTimeout(url, optimizedOptions);
-            
+
             // Cache successful responses
             if (response.ok) {
                 this._cacheResponse(cacheKey, response);
             }
-            
+
             const responseTime = Date.now() - startTime;
             this._recordResponseTime(responseTime);
-            
+
             // Warn if response time exceeds target
             if (responseTime > this._responseTimeTarget) {
                 console.warn(`Slow response detected: ${responseTime}ms for ${url}`);
             }
-            
+
             return response;
-            
+
         } catch (error) {
             const responseTime = Date.now() - startTime;
             this._recordResponseTime(responseTime);
@@ -98,25 +98,25 @@ export default class NetworkOptimizationService {
      */
     async batchRequests(requests) {
         if (requests.length === 0) return [];
-        
+
         // Split into chunks for batching
         const chunks = chunkArray(requests, this._batchSize);
         const results = [];
-        
+
         for (const chunk of chunks) {
-            const chunkPromises = chunk.map(req => 
+            const chunkPromises = chunk.map(req =>
                 this.optimizedFetch(req.url, req.options).catch(error => ({ error }))
             );
-            
+
             const chunkResults = await Promise.all(chunkPromises);
             results.push(...chunkResults);
-            
+
             // Small delay between chunks to prevent overwhelming the server
             if (chunks.length > 1) {
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
         }
-        
+
         return results;
     }
 
@@ -158,10 +158,10 @@ export default class NetworkOptimizationService {
      */
     async _processBatch() {
         if (this._requestQueue.length === 0) return;
-        
+
         const batch = this._requestQueue.splice(0, this._batchSize);
         this._batchTimer = null;
-        
+
         // Process batch requests
         const promises = batch.map(async (req) => {
             try {
@@ -171,9 +171,9 @@ export default class NetworkOptimizationService {
                 req.reject(error);
             }
         });
-        
+
         await Promise.all(promises);
-        
+
         // Schedule next batch if more requests are queued
         if (this._requestQueue.length > 0) {
             this._batchTimer = setTimeout(() => {
@@ -192,16 +192,16 @@ export default class NetworkOptimizationService {
     async _fetchWithTimeout(url, options) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this._responseTimeTarget * 2);
-        
+
         try {
             const response = await fetch(url, {
                 ...options,
                 signal: controller.signal
             });
-            
+
             clearTimeout(timeoutId);
             return response;
-            
+
         } catch (error) {
             clearTimeout(timeoutId);
             if (error.name === 'AbortError') {
@@ -267,12 +267,12 @@ export default class NetworkOptimizationService {
      */
     _recordResponseTime(responseTime) {
         this._responseTimeStats.samples.push(responseTime);
-        
+
         // Keep only the last N samples
         if (this._responseTimeStats.samples.length > this._responseTimeStats.maxSamples) {
             this._responseTimeStats.samples.shift();
         }
-        
+
         // Update average
         const sum = this._responseTimeStats.samples.reduce((a, b) => a + b, 0);
         this._responseTimeStats.average = sum / this._responseTimeStats.samples.length;
@@ -336,7 +336,7 @@ export default class NetworkOptimizationService {
             clearTimeout(this._batchTimer);
             this._batchTimer = null;
         }
-        
+
         this._requestQueue.length = 0;
         this._requestCache.clear();
     }

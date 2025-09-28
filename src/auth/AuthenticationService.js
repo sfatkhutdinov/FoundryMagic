@@ -60,7 +60,7 @@ export default class AuthenticationService {
             // Set up session
             this._token = cobaltToken;
             const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours from now
-            
+
             this._sessionData = {
                 valid: true,
                 expiresAt,
@@ -91,7 +91,7 @@ export default class AuthenticationService {
             if (error.name === 'InvalidTokenError' || error.name === 'PermissionDeniedError') {
                 throw error;
             }
-            
+
             const networkError = new Error(`Network failure during authentication: ${error.message}`);
             networkError.name = 'NetworkFailureError';
             throw networkError;
@@ -151,7 +151,7 @@ export default class AuthenticationService {
             if (error.name === 'RefreshFailedError') {
                 throw error;
             }
-            
+
             const refreshError = new Error(`Session refresh failed: ${error.message}`);
             refreshError.name = 'RefreshFailedError';
             throw refreshError;
@@ -230,7 +230,7 @@ export default class AuthenticationService {
     clearToken() {
         this._token = null;
         this._sessionData = null;
-        
+
         if (this._refreshTimer) {
             clearTimeout(this._refreshTimer);
             this._refreshTimer = null;
@@ -317,7 +317,7 @@ export default class AuthenticationService {
         if (game?.settings) {
             this._token = game.settings.get('foundrymagic', 'ddbToken') || null;
             this._sessionData = game.settings.get('foundrymagic', 'sessionData') || null;
-            
+
             // Check if session is still valid
             if (this._sessionData && this._sessionData.expiresAt) {
                 const expiryTime = new Date(this._sessionData.expiresAt).getTime();

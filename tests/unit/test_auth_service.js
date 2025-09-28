@@ -85,7 +85,7 @@ describe('AuthenticationService', () => {
             await expect(authService.authenticate({ cobaltToken: validToken, userId }))
                 .rejects
                 .toThrow('Only DMs can authenticate with D&D Beyond');
-            
+
             // Reset for other tests
             game.user.isGM = true;
         });
@@ -222,7 +222,7 @@ describe('AuthenticationService', () => {
         test('should clear token and session data', () => {
             authService._token = 'test-token';
             authService._sessionData = { valid: true };
-            authService._refreshTimer = setTimeout(() => {}, 1000);
+            authService._refreshTimer = setTimeout(() => { }, 1000);
 
             authService.clearToken();
 
@@ -238,7 +238,7 @@ describe('AuthenticationService', () => {
             authService._token = 'test-token';
             authService._sessionData = { valid: true };
             authService._isInitialized = true;
-            authService._refreshTimer = setTimeout(() => {}, 1000);
+            authService._refreshTimer = setTimeout(() => { }, 1000);
 
             authService.cleanup();
 

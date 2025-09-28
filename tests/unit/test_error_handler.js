@@ -126,7 +126,7 @@ describe('ErrorHandler', () => {
     describe('handleWarning', () => {
         test('should handle warnings appropriately', () => {
             const warning = 'Content may be outdated';
-            
+
             const result = errorHandler.handleWarning(warning, 'cache');
 
             expect(result).toEqual({
@@ -141,7 +141,7 @@ describe('ErrorHandler', () => {
 
         test('should suppress duplicate warnings', () => {
             const warning = 'Duplicate warning';
-            
+
             errorHandler.handleWarning(warning, 'test');
             errorHandler.handleWarning(warning, 'test'); // Duplicate
 
@@ -254,9 +254,9 @@ describe('ErrorHandler', () => {
 
         test('should return null for non-recoverable errors', () => {
             const error = { name: 'FatalError' };
-            
+
             const recovery = errorHandler.createRecoveryAction(error);
-            
+
             expect(recovery).toBeNull();
         });
     });
@@ -265,7 +265,7 @@ describe('ErrorHandler', () => {
         test('should log errors with proper structure', () => {
             const error = new Error('Test error');
             error.stack = 'Test stack';
-            
+
             errorHandler.logError(error, 'test-context', { userId: '123' });
 
             expect(console.error).toHaveBeenCalledWith(
@@ -291,7 +291,7 @@ describe('ErrorHandler', () => {
             };
 
             const error = new Error('Test error');
-            
+
             errorHandler.logError(error, 'test');
 
             expect(console.error).toHaveBeenCalledWith(
@@ -312,7 +312,7 @@ describe('ErrorHandler', () => {
             // Generate some errors
             errorHandler.handleError(new Error('Error 1'));
             errorHandler.handleError(new Error('Error 2'));
-            
+
             const authError = new Error('Auth failed');
             authError.name = 'InvalidTokenError';
             errorHandler.handleError(authError);
@@ -326,11 +326,11 @@ describe('ErrorHandler', () => {
 
         test('should reset error statistics', () => {
             errorHandler.handleError(new Error('Test error'));
-            
+
             expect(errorHandler.getErrorStats().total).toBe(1);
-            
+
             errorHandler.resetStats();
-            
+
             expect(errorHandler.getErrorStats().total).toBe(0);
         });
     });

@@ -101,7 +101,7 @@ describe('ValidationService', () => {
             const characterData = {
                 name: 'Test Character',
                 system: {
-                    details: { 
+                    details: {
                         level: { value: 20 }, // Max level
                         race: 'Human',
                         class: 'Fighter'
@@ -385,7 +385,7 @@ describe('ValidationService', () => {
         describe('isValidRarity', () => {
             test('should validate item rarities correctly', () => {
                 const validRarities = ['common', 'uncommon', 'rare', 'very rare', 'legendary', 'artifact'];
-                
+
                 validRarities.forEach(rarity => {
                     expect(validator.isValidRarity(rarity)).toBe(true);
                 });
